@@ -40,9 +40,7 @@ void main()
     float theta = dot(lightDir, normalize(-light.direction)); 
     float epsilon = light.cutOff - light.outerCutOff;
     float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);   
-    
-    if(theta > light.cutOff) // remember that we're working with angles as cosines instead of degrees so a '>' is used.
-    {    
+ 
         // ambient
         vec3 ambient = light.ambient * texture(material.diffuse, TexCoords).rgb;
         
@@ -67,11 +65,5 @@ void main()
             
         vec3 result = ambient + diffuse + specular;
         FragColor = vec4(result, 1.0);
-    }
-    else 
-    {
-        // else, use ambient light so scene isn't completely dark outside the spotlight.
-        FragColor = vec4(light.ambient * texture(material.diffuse, TexCoords).rgb, 1.0);
-    }
 } 
 
