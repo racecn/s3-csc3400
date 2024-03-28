@@ -8,6 +8,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
+#include "Sphere.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -173,7 +174,7 @@ int main()
     // load models
     // -----------
     Model ourModel("resources/objects/backpack.obj");
-
+    Sphere sphere(1.0f, 36, 18);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -224,7 +225,8 @@ int main()
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
-        ourModel.Draw(ourShader);
+        //ourModel.Draw(ourShader);
+        sphere.draw();
 
         // draw skybox as last
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
@@ -261,15 +263,14 @@ int main()
     }
 
     // Cleanup ImGui
+    // -------------
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
-
-        // ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &skyboxVAO);
     glDeleteBuffers(1, &skyboxVBO);
 
