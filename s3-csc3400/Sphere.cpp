@@ -53,26 +53,26 @@ void Sphere::buildVerticesSmooth() {
     float sectorAngle, stackAngle;
 
     for (int i = 0; i <= stackCount; ++i) {
-        stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+        stackAngle = -PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
         xy = radius * cosf(stackAngle);             // r * cos(u)
-        z = radius * sinf(stackAngle);              // r * sin(u)
+        y = radius * sinf(stackAngle);              // r * sin(u)  // Changed from z to y
 
         for (int j = 0; j <= sectorCount; ++j) {
             sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
             // vertex position
             x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
-            y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+            z = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)  // Changed from y to z
             addVertex(x, y, z);
 
             // normalized vertex normal
             nx = x * lengthInv;
-            ny = y * lengthInv;
-            nz = z * lengthInv;
+            ny = y * lengthInv;                     // Changed from nz to ny
+            nz = z * lengthInv;                     // Changed from ny to nz
             addNormal(nx, ny, nz);
 
             // vertex tex coord between [0, 1]
-            s = (float)j / sectorCount;
+            s = 1.0f - (float)j / sectorCount;
             t = (float)i / stackCount;
             addTexCoord(s, t);
         }
@@ -97,6 +97,7 @@ void Sphere::buildVerticesSmooth() {
 
     buildInterleavedVertices();
 }
+
 
 void Sphere::set(float radius, int sectorCount, int stackCount, bool smooth, int up) {
     this->radius = radius;

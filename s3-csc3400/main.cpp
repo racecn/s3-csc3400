@@ -171,7 +171,7 @@ int main()
     unsigned int cubemapTexture = loadCubemap(faces);
 
     unsigned int earthTexture = loadTexture("resources/textures/planets/earth/earth_diffuse.jpg");
-    unsigned int earthNormal = loadTexture("resources/textures/planets/earth/earth_normal.tif");
+    unsigned int earthNormal = loadTexture("resources/textures/planets/earth/earth_normal.jpg");
 
     // shader configuration
     // --------------------
