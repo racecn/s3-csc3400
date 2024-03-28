@@ -38,6 +38,11 @@ bool cursorEnabled = false;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// sphere
+int numStacks = 18;
+int numSectors = 36;
+bool smoothShading = true;
+
 int main()
 {
     // glfw: initialize and configure
@@ -86,6 +91,7 @@ int main()
     // build and compile shaders
     // -------------------------
     Shader ourShader("lighting.vs", "lighting.fs");
+    Shader earthShader("shaders/earth.vs", "shaders/earth.fs");
     Shader skyboxShader("skybox.vs", "skybox.fs");
 
     float skyboxVertices[] = {
@@ -164,6 +170,9 @@ int main()
     };
     unsigned int cubemapTexture = loadCubemap(faces);
 
+    unsigned int earthTexture = loadTexture("resources/textures/planets/earth/earth_diffuse.jpg");
+    unsigned int earthNormal = loadTexture("resources/textures/planets/earth/earth_normal.tif");
+
     // shader configuration
     // --------------------
 
@@ -174,7 +183,7 @@ int main()
     // load models
     // -----------
     Model ourModel("resources/objects/backpack.obj");
-    Sphere sphere(1.0f, 36, 18);
+    Sphere sphere(1.0f, numSectors, numStacks, smoothShading, 3);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -226,6 +235,20 @@ int main()
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         //ourModel.Draw(ourShader);
+
+        earthShader.use();
+        earthShader.setMat4("projection", projection);
+        earthShader.setMat4("view", view);
+        earthShader.setMat4("model", model);
+        earthShader.setInt("earthTexture", 0);
+        earthShader.setInt("earthNormalMap", 1);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, earthTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, earthNormal);
+
+        
         sphere.draw();
 
         // draw skybox as last
@@ -250,7 +273,31 @@ int main()
         ImGui::NewFrame();
 
         // Show the ImGui demo window
-        ImGui::ShowDemoWindow();
+        ImGui::Begin("Model Settings");
+        ImGui::SliderInt("Stacks", &numStacks, 2, 50); // Adjust the min and max values as needed
+        ImGui::SliderInt("Sectors", &numSectors, 3, 50);
+        ImGui::Checkbox("Smooth shading", &smoothShading);
+        ImGui::End();
+
+        static int prevStacks = numStacks;
+        if (numStacks != prevStacks) {
+            sphere.setStackCount(numStacks);
+            sphere.buildVerticesSmooth();
+            prevStacks = numStacks;
+        }
+
+        static int prevSectors = numSectors;
+        if (numSectors != prevSectors) {
+            sphere.setSectorCount(numSectors);
+            sphere.buildVerticesSmooth();
+            prevSectors = numSectors;
+        }
+
+        static bool prevShading = smoothShading;
+        if (smoothShading != prevShading) {
+            sphere.setSmooth(smoothShading);
+            prevShading = smoothShading;
+        }
 
         // Rendering ImGui
         ImGui::Render();
@@ -368,6 +415,44 @@ unsigned int loadCubemap(vector<std::string> faces)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return textureID;
+}
+
+unsigned int loadTexture(const char* path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true); // Flip the textures on the y-axis
+    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrChannels == 1)
+            format = GL_RED;
+        else if (nrChannels == 3)
+            format = GL_RGB;
+        else if (nrChannels == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
 
     return textureID;
 }

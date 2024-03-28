@@ -14,8 +14,9 @@ const int MIN_SECTOR_COUNT = 3;
 const int MIN_STACK_COUNT = 2;
 
 // Constructor
-Sphere::Sphere(float radius, int sectors, int stacks, bool smooth) :
+Sphere::Sphere(float radius, int sectors, int stacks, bool smooth, int up) :
     radius(radius), sectorCount(sectors), stackCount(stacks), smooth(smooth),
+    up(up),
     VAO(0), VBO(0), EBO(0)
 {
     if (sectors < MIN_SECTOR_COUNT) this->sectorCount = MIN_SECTOR_COUNT;
@@ -97,6 +98,18 @@ void Sphere::buildVerticesSmooth() {
     buildInterleavedVertices();
 }
 
+void Sphere::set(float radius, int sectorCount, int stackCount, bool smooth, int up) {
+    this->radius = radius;
+    this->sectorCount = sectorCount;
+    this->stackCount = stackCount;
+    this->smooth = smooth;
+    this->up = up;
+
+    // Rebuild the sphere with the new parameters
+    buildVerticesSmooth();
+    setupSphere();
+}
+
 void Sphere::buildInterleavedVertices() {
     std::size_t i, j;
     std::size_t count = vertices.size();
@@ -171,6 +184,23 @@ void Sphere::clearArrays() {
     texCoords.clear();
     indices.clear();
     interleavedVertices.clear();
+}
+
+void Sphere::setSectorCount(int sectorCount)
+{
+    if (sectorCount != this->sectorCount)
+        set(radius, sectorCount, stackCount, smooth, up);
+}
+
+void Sphere::setStackCount(int stackCount)
+{
+    if (stackCount != this->stackCount)
+        set(radius, sectorCount, stackCount, smooth, up);
+}
+
+void Sphere::setSmooth(bool smooth) {
+    if (smooth != this->smooth)
+        set(radius, sectorCount, stackCount, smooth, up);
 }
 
 std::vector<float> Sphere::computeFaceNormal(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3) {

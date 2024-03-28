@@ -6,7 +6,7 @@ class Sphere
 {
 public:
     // Constructor/Destructor
-    Sphere(float radius = 1.0f, int sectorCount = 36, int stackCount = 18, bool smooth = true);
+    Sphere(float radius = 1.0f, int sectorCount = 36, int stackCount = 18, bool smooth = true, int up = 3);
     ~Sphere();
 
     // Getters
@@ -14,20 +14,23 @@ public:
     int getSectorCount() const { return sectorCount; }
     int getStackCount() const { return stackCount; }
     bool isSmooth() const { return smooth; }
+    int getUp() const { return up; }
 
     // Setters
-    void set(float radius, int sectorCount, int stackCount, bool smooth = true);
+    void set(float radius, int sectorCount, int stackCount, bool smooth = true, int up = 3);
     void setRadius(float radius);
     void setSectorCount(int sectorCount);
     void setStackCount(int stackCount);
     void setSmooth(bool smooth);
+    void setUp(int up);
+
+    void buildVerticesSmooth();
 
     // Drawing functions
     void draw() const;
 
 protected:
     // Helper functions
-    void buildVerticesSmooth();
     void buildInterleavedVertices();
     void setupSphere();
     void clearArrays();
@@ -45,6 +48,7 @@ private:
     int sectorCount;
     int stackCount;
     bool smooth;
+    int up;
     std::vector<float> vertices;
     std::vector<float> normals;
     std::vector<float> texCoords;
